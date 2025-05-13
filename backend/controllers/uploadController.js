@@ -20,22 +20,24 @@ export const handleResumeUpload = async (req, res) => {
         {
           return res.status(400).json({message:"no file upload"});
         }
-        if(!jobDescription || !apiKey  || !llmMapService || !model)
-        {
-          return res.status(400).json({messgae:"Missing fileds required"});
+        if (!jobDescription || !apiKey || !llmMapService || !model) {
+          return res.status(400).json({ message: "Missing fileds required" });
         }
         const text = await extractText(file);
         // console.log("here", text);
         const callLLM = llmMap[llmMapService.toLowerCase()];
 
-        if(!callLLM)
-        {
-          return res.status(400).json({message:"Unsupported Service"});
+        if (!callLLM) {
+          return res.status(400).json({ message: "Unsupported Service" });
         }
-        
-        res.status(200).json({ message: "File Uploaded successfully" });
+        const result = await callLLM({
+          apiKey,
+          model,
+          text,
+          jobDescription,
+        });
 
-        const result = await callLLM({apiKey, model, text, jobDescription});
+        res.status(200).json({ message: "File Uploaded successfully" });
 
         console.log("result", result);
         // console.log("extracted text is", text);
@@ -43,8 +45,10 @@ export const handleResumeUpload = async (req, res) => {
 
   }
   catch(error){
-
-        console.log("uploadController, handleResumeUpload function",error);
+          console.error(
+            "uploadController, handleResumeUpload function error:",
+            error.stack || error
+          );
         res.status(500).json({message:"internal server error"});
   }
 }  
